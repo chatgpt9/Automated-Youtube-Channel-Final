@@ -1,33 +1,43 @@
-# Base image
+# Use the official Node.js image as the base image
 FROM node:latest
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-  libnss3-dev \
-  libglib2.0-0 \
-  libxi6 \
-  libxtst6 \
-  libxss1 \
-  libgtk-3-0 \
-  libgbm1
-
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Install Xvfb and other required packages
+RUN apt-get update && \
+    apt-get install -y \
+    xvfb \
+    libnss3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libxcomposite1 \
+    libxrandr2 \
+    libgtk-3-0 \
+    libgbm1 \
+    libxss1
 
-# Install dependencies
+# Install global dependencies
+RUN npm install -g \
+    playwright \
+    axios \
+    puppeteer \
+    puppeteer-extra \
+    puppeteer-extra-plugin-stealth \
+    chalk \
+    dotenv \
+    node-cron \
+    tiktok-video-downloader
+
+# Copy package.json and package-lock.json into the working directory
+COPY package.json package-lock.json ./
+
+# Install local dependencies
 RUN npm install
 
-# Install global packages
-RUN npm install -g playwright axios puppeteer puppeteer-extra puppeteer-extra-plugin-stealth chalk dotenv node-cron tiktok-video-downloader
-
-# Copy app files
+# Copy the rest of the application code into the working directory
 COPY . .
 
-# Expose the port
-EXPOSE 3000
-
-# Run npm i and the uploadVideo.js script
-CMD ["bash", "-c", "npm i && node tests/uploadVideo.js"]
+# Set the entrypoint script to execute the tests/uploadVideo.js script with Xvfb
+ENTRYPOINT ["xvfb-run", "--server-args='-screen 0 1024x768x24'", "node", "tests/uploadVideo.js"]

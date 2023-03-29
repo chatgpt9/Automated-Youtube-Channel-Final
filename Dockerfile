@@ -39,5 +39,10 @@ RUN npm install
 # Copy the rest of the application code into the working directory
 COPY . .
 
-# Set the entrypoint script to execute the tests/uploadVideo.js script with Xvfb
-ENTRYPOINT ["xvfb-run", "--server-args='-screen 0 1024x768x24'", "node", "tests/uploadVideo.js"]
+# Set up the Xvfb environment
+ENV DISPLAY=:99
+ENV SCREEN=0
+ENV SCREEN_RESOLUTION=1024x768x24
+
+# Start Xvfb and execute the tests/uploadVideo.js script
+CMD Xvfb :99 -screen $SCREEN $SCREEN_RESOLUTION & node tests/uploadVideo.js
